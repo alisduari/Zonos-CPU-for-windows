@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel
+FROM pytorch/pytorch:2.6.0-cpu-py3.11-ubuntu22.04
 RUN pip install uv
 
 RUN apt update && \
