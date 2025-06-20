@@ -1,0 +1,13 @@
+def prepare_conditioning(self, cond_dict: dict, uncond_dict: dict | None = None) -> torch.Tensor:
+    if uncond_dict is None:
+        try:
+            uncond_dict = {k: cond_dict[k] for k in self.prefix_conditioner.required_keys}
+        except KeyError as e:
+            missing = e.args[0]
+            raise KeyError(f"Missing required conditioning key: '{missing}' in cond_dict") from e
+    return torch.cat(
+        [
+            self.prefix_conditioner(cond_dict),
+            self.prefix_conditioner(uncond_dict),
+        ]
+    )

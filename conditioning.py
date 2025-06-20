@@ -1,0 +1,8 @@
+def build_conditioners(conditioners: list[dict], output_dim: int) -> list['Conditioner']:
+    conditioners_list = []
+    for config in conditioners:
+        cond_type = config.get("type")
+        if cond_type not in _cond_cls_map:
+            raise ValueError(f"Unknown conditioner type: {cond_type}. Available types: {list(_cond_cls_map.keys())}")
+        conditioners_list.append(_cond_cls_map[cond_type](output_dim, **config))
+    return conditioners_list

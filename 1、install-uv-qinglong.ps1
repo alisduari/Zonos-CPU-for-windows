@@ -1,4 +1,4 @@
-﻿Set-Location $PSScriptRoot
+Set-Location $PSScriptRoot
 
 $Env:HF_HOME = "huggingface"
 #$Env:HF_ENDPOINT="https://hf-mirror.com"
@@ -59,7 +59,6 @@ if ($env:OS -ilike "*windows*") {
             if ($CDrive) {
                 $FreeSpaceGB = [math]::Round($CDrive.FreeSpace / 1GB, 2)
                 Write-Host "C: drive free space: ${FreeSpaceGB}GB"
-                
                 # $Env:UV cache directory based on available space
                 if ($FreeSpaceGB -lt 10) {
                     Write-Host "Low disk space detected. Using local .cache directory"
@@ -90,19 +89,6 @@ if ($env:OS -ilike "*windows*") {
         . ./.venv/Scripts/activate
     }
 }
-elseif (Test-Path "./venv/bin/activate") {
-    Write-Output "Linux venv"
-    . ./venv/bin/Activate.ps1
-}
-elseif (Test-Path "./.venv/bin/activate") {
-    Write-Output "Linux .venv"
-    . ./.venv/bin/activate.ps1
-}
-else {
-    Write-Output "Create .venv"
-    ~/.local/bin/uv venv -p 3.10
-    . ./.venv/bin/activate.ps1
-}
 
 Write-Output "Installing main requirements"
 
@@ -118,25 +104,17 @@ try {
 catch {
     try {
         # 设置变量
-        $githubURL = "https://github.com/espeak-ng/espeak-ng/releases/download/1.52.0/espeak-ng.msi"  # 替换为你的 GitHub MSI 文件的 URL
-        $downloadPath = "$env:USERPROFILE\Downloads\espeak-ng.msi"  # 替换为你想要保存 MSI 文件的路径（这里使用用户的“下载”文件夹）
+        $githubURL = "https://github.com/espeak-ng/espeak-ng/releases/download/1.52.0/espeak-ng.msi"
+        $downloadPath = "$env:USERPROFILE\Downloads\espeak-ng.msi"
         $logFile = "./install.log"
-        Write-Output "Downlaoding espeak-ng|下载espeak-ng模块中..."
-        Invoke-WebRequest -Uri $githubURL -OutFile $downloadPath -UseBasicParsing
-        Write-Host "Downlaod finished|下载完成！" -ForegroundColor Green
-        Write-Host "Installing espeak-ng msi|安装espeak-ng模块中..." -ForegroundColor Green
-        # 使用 Start-Process 安装 MSI 文件（静默安装，记录日志）
-        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$downloadPath`" /qn /l*v `"$logFile`"" -Wait -PassThru -Verb RunAs
-        try {
-            espeak-ng --version
-            Write-Output "espeak-ng Install finished| espeak-ng安装成功" -ForegroundColor Green
-        }
-        catch {
+        Invoke-WebRequest -Uri $githubURL -OutFile $downloadPath -ErrorAction Stop
+        Start-Process msiexec.exe -Wait -ArgumentList "/i $downloadPath /qn /log $logFile"
+        if ($LASTEXITCODE -ne 0) {
             Write-Output "espeak-ng install failed, check log $logFile|安装espeak-ng模块失败。请查看日志文件:$logFile"  -ForegroundColor Red
         }
     }
     catch {
-        Write-Error "Doownload error:$($_.Exception.Message)"
+        Write-Error "Download error:$($_.Exception.Message)"
         if (Test-Path $downloadPath) {
             Remove-Item $downloadPath -Force # 如果下载失败，删除未完成的下载文件
             Write-Host "Delete download file" -ForegroundColor Yellow
